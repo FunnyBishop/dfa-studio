@@ -1,0 +1,17 @@
+{
+  "name": "dfa-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive DFA minimization studio with table-filling visualization.",
+  "scripts": {
+    "test": "node tests/core.test.js"
+  },
+  "keywords": [
+    "dfa",
+    "automata",
+    "minimization",
+    "visualization",
+    "education"
+  ],
+  "license": "MIT"
+}

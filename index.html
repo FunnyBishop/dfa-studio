@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#08131d">
+  <meta name="description" content="可交互的 DFA 最小化实验室：图形或转移表达式输入，标记法逐格演示区分表，自动合并等价状态。">
+  <title>DFA 化简实验室 · 标记法</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b1a24'/%3E%3Ccircle cx='19' cy='32' r='7' fill='%2372e7cf'/%3E%3Ccircle cx='44' cy='18' r='6' fill='none' stroke='%23f7c86c' stroke-width='2.5'/%3E%3Ccircle cx='45' cy='45' r='6' fill='none' stroke='%2380b8ff' stroke-width='2.5'/%3E%3Cpath d='M25 29l13-7M25 36l13 6' stroke='%2372e7cf' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <svg class="svg-defs" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-pointer" viewBox="0 0 24 24"><path d="M5 3.7 18 12l-5.6 1.2L15 20l-2.4 1-3.4-7.1L5 18.2V3.7Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><path d="M9.4 14.6 14.6 9.4M7.9 17.7l-1.2 1.2a3.6 3.6 0 0 1-5-5l3.4-3.4a3.6 3.6 0 0 1 5.1 0M16.1 6.3l1.2-1.2a3.6 3.6 0 0 1 5 5l-3.4 3.4a3.6 3.6 0 0 1-5.1 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+      <symbol id="i-layout" viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="18" cy="6.5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="18" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m8.2 8 2.1 7.4M15.7 8.2l-2.6 7.2M8.4 6.7h7.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.6v12.8L19 12 8 5.6Z" fill="currentColor"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7.5 5.5h3v13h-3zM13.5 5.5h3v13h-3z" fill="currentColor"/></symbol>
+      <symbol id="i-prev" viewBox="0 0 24 24"><path d="M7 5.5v13M18 6.2 9.7 12l8.3 5.8V6.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></symbol>
+      <symbol id="i-next" viewBox="0 0 24 24"><path d="M17 5.5v13M6 6.2l8.3 5.8L6 17.8V6.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></symbol>
+      <symbol id="i-skip" viewBox="0 0 24 24"><path d="M4 6.4 13 12l-9 5.6V6.4ZM17.5 5.5v13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></symbol>
+      <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m18.5 16 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z" fill="currentColor"/></symbol>
+      <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9.5 9.2a2.6 2.6 0 0 1 2.5-2.1c1.6 0 2.8 1 2.8 2.5 0 2-2.7 2-2.7 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12.1" cy="17.2" r="1" fill="currentColor"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2.3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M15.5 8.5V6.3a1.8 1.8 0 0 0-1.8-1.8H6.3a1.8 1.8 0 0 0-1.8 1.8v7.4a1.8 1.8 0 0 0 1.8 1.8h2.2" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+      <symbol id="i-reset" viewBox="0 0 24 24"><path d="M5 8.8A8 8 0 1 1 4.3 15M5 4.8v4h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 6.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-5.5-5.5L19 12l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 3.8h5M7 7l.8 13.2h8.4L17 7M10 11v5.8M14 11v5.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    </defs>
+  </svg>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 44 44">
+            <circle cx="9" cy="22" r="3.2"/>
+            <circle cx="31" cy="10" r="3.2"/>
+            <circle cx="35" cy="31" r="3.2"/>
+            <path d="M12 21 28 11M12 24l20 6M32 12.5l2.3 14.8"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <span class="brand-kicker">AUTOMATA LAB <b>01</b></span>
+          <h1>DFA 化简实验室</h1>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <div class="algorithm-pill">
+          <span class="signal-dot"></span>
+          <span>区分表标记法</span>
+          <em>默认</em>
+        </div>
+        <p>画图或写转移式，看它一步步收敛成最小 DFA。</p>
+      </div>
+
+      <div class="topbar-actions">
+        <label class="example-picker" title="载入一个可编辑的自动机示例">
+          <span>示例</span>
+          <select id="exampleSelect" aria-label="选择示例自动机"></select>
+        </label>
+        <button class="icon-btn" id="helpBtn" type="button" title="使用说明与表达式语法" aria-label="打开帮助">
+          <svg class="icon"><use href="#i-help"></use></svg>
+        </button>
+        <button class="primary-btn" id="minimizeBtn" type="button">
+          <svg class="icon"><use href="#i-spark"></use></svg>
+          <span>开始化简</span>
+          <kbd>Ctrl ↵</kbd>
+        </button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="panel editor-panel">
+        <div class="panel-head">
+          <div class="head-title">
+            <span class="eyebrow">01 / INPUT</span>
+            <h2>自动机输入</h2>
+          </div>
+          <span class="status-chip" id="inputStatus"><i></i>可编辑</span>
+        </div>
+
+        <div class="segmented" role="tablist" aria-label="输入方式">
+          <button class="segment is-active" id="graphTab" type="button" role="tab" aria-selected="true" data-tab="graph">图形编辑</button>
+          <button class="segment" id="expressionTab" type="button" role="tab" aria-selected="false" data-tab="expression">转移表达式</button>
+        </div>
+
+        <div class="editor-body">
+          <section class="pane" id="graphPane">
+            <div class="graph-toolbar">
+              <div class="tool-group" role="group" aria-label="编辑工具">
+                <button class="tool-btn is-active" id="selectToolBtn" type="button" title="选择并拖动状态">
+                  <svg class="icon"><use href="#i-pointer"></use></svg><span>选择</span>
+                </button>
+                <button class="tool-btn" id="connectToolBtn" type="button" title="点击起点，再点击终点来连接">
+                  <svg class="icon"><use href="#i-link"></use></svg><span>连线</span>
+                </button>
+              </div>
+              <div class="tool-group right">
+                <button class="tool-btn" id="addStateBtn" type="button" title="添加一个新状态">
+                  <svg class="icon"><use href="#i-plus"></use></svg><span>状态</span>
+                </button>
+                <button class="tool-btn icon-only" id="layoutBtn" type="button" title="自动整理布局" aria-label="自动整理布局">
+                  <svg class="icon"><use href="#i-layout"></use></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="tool-hint" id="toolHint">
+              <span class="hint-led"></span>
+              <span>拖动状态调整布局；点选状态或转移标签可编辑。</span>
+            </div>
+
+            <div class="mini-section">
+              <div class="mini-head">
+                <span>输入字母表</span>
+                <span class="mini-count" id="alphabetCount">0</span>
+              </div>
+              <div class="chips alphabet-chips" id="alphabetChips"></div>
+              <form class="inline-form" id="addSymbolForm">
+                <input id="symbolInput" type="text" maxlength="5" autocomplete="off" placeholder="增加字母，如 a 或 0" aria-label="新输入字母">
+                <button type="submit" title="添加到字母表">添加</button>
+              </form>
+            </div>
+
+            <div class="mini-section">
+              <div class="mini-head">
+                <span>检查器</span>
+                <span class="mini-count" id="selectionBadge">未选择</span>
+              </div>
+              <div class="inspector" id="inspector"></div>
+            </div>
+
+            <div class="mini-section overview-section">
+              <div class="mini-head">
+                <span>自动机概览</span>
+                <span class="mini-count" id="overviewBadge">DFA</span>
+              </div>
+              <div class="stat-grid" id="dfaStats"></div>
+              <div class="warning-list" id="warnings"></div>
+            </div>
+          </section>
+
+          <section class="pane expression-pane" id="expressionPane" hidden>
+            <div class="expression-topline">
+              <p>把 <code>q0 -a-> q1</code> 这样的转移式贴在下面。</p>
+              <button type="button" class="text-btn" id="syncExpressionBtn">
+                <svg class="icon"><use href="#i-reset"></use></svg> 写回当前图
+              </button>
+            </div>
+            <label class="sr-only" for="expressionInput">DFA 转移表达式</label>
+            <textarea id="expressionInput" class="expression-input" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off"></textarea>
+            <div class="expression-feedback" id="expressionFeedback" aria-live="polite"></div>
+            <button type="button" class="wide-btn" id="applyExpressionBtn">
+              应用表达式到图形
+              <svg class="icon"><use href="#i-arrow"></use></svg>
+            </button>
+
+            <details class="syntax-help" open>
+              <summary>表达式格式</summary>
+              <div class="syntax-body">
+                <pre><code>states: q0, q1, q2
+alphabet: a, b
+start: q0
+finals: q2
+
+q0 -a-> q1
+q0 -b-> q0
+q1 -a,b-> q2</code></pre>
+                <ul>
+                  <li><b>states / alphabet</b> 可省略，会从转移中推断。</li>
+                  <li>一行可写多个转移字母：<code>-a,b-&gt;</code>。</li>
+                  <li>也接受简化写法：<code>q0 a q1</code>。</li>
+                  <li><code>#</code> 或 <code>//</code> 开头的行是注释。</li>
+                </ul>
+              </div>
+            </details>
+          </section>
+        </div>
+
+        <div class="editor-foot">
+          <span><span class="kbd-dot"></span>编辑后点击右上角「开始化简」</span>
+          <button class="text-btn" id="resetSampleBtn" type="button">
+            <svg class="icon"><use href="#i-reset"></use></svg> 重置示例
+          </button>
+        </div>
+      </aside>
+
+      <section class="center-stack">
+        <article class="panel graph-panel">
+          <div class="panel-head graph-head">
+            <div class="head-title">
+              <span class="eyebrow">02 / VISUAL</span>
+              <h2 id="graphTitle">自动机视图</h2>
+            </div>
+            <div class="view-toggle" role="tablist" aria-label="自动机视图">
+              <button type="button" class="view-btn is-active" data-view="input" aria-selected="true">输入图</button>
+              <button type="button" class="view-btn" data-view="result" aria-selected="false" disabled>最小 DFA</button>
+            </div>
+          </div>
+
+          <div class="graph-stage" id="graphStage">
+            <div class="graph-grid" aria-hidden="true"></div>
+            <svg id="dfaGraph" viewBox="0 0 960 600" role="group" aria-label="自动机状态转移图：拖动状态调整布局，按回车编辑状态"></svg>
+            <div class="graph-badge" id="graphBadge">等待化简</div>
+            <div class="graph-legend" id="graphLegend">
+              <span><i class="lg-start"></i>开始</span>
+              <span><i class="lg-final"></i>终态</span>
+              <span><i class="lg-focus"></i>当前状态对</span>
+            </div>
+            <div class="graph-empty" id="graphEmpty" hidden>
+              <span class="empty-orbit"></span>
+              <strong>还没有状态</strong>
+              <p>点击「状态」开始搭建，或载入一个示例。</p>
+            </div>
+            <div class="connect-hint" id="connectHint" hidden>
+              <span>连线模式</span>
+              <p id="connectHintText">点击起点状态</p>
+              <button type="button" id="cancelConnectBtn">退出</button>
+            </div>
+          </div>
+
+          <div class="graph-foot">
+            <div class="graph-stats" id="graphStats"></div>
+            <span class="graph-tip">拖动节点 · 点选编辑 · 点击转移标签</span>
+          </div>
+        </article>
+
+        <article class="panel table-panel">
+          <div class="panel-head compact">
+            <div class="head-title">
+              <span class="eyebrow">PAIR TABLE</span>
+              <h2>区分表</h2>
+            </div>
+            <div class="table-legend">
+              <span><i class="t-mark">×</i>可区分</span>
+              <span><i class="t-equ">≡</i>等价</span>
+              <span><i class="t-current"></i>当前对</span>
+            </div>
+          </div>
+          <div class="table-wrap" id="tableWrap">
+            <div class="empty-panel" id="tableEmpty">
+              <span class="empty-matrix" aria-hidden="true">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              </span>
+              <div>
+                <strong>区分表等待生成</strong>
+                <p>开始化简后，每一对状态的区分证据会在这里逐格出现。</p>
+              </div>
+            </div>
+            <div class="pair-table-scroll" id="pairTableScroll" hidden>
+              <table class="pair-table" id="pairTable"></table>
+            </div>
+          </div>
+          <div class="current-reason" id="currentReason">
+            <span class="reason-mark">i</span>
+            <p>标记法从终态差异出发，不断寻找「转移到已区分状态对」的证据。</p>
+          </div>
+        </article>
+      </section>
+
+      <aside class="panel process-panel">
+        <div class="panel-head">
+          <div class="head-title">
+            <span class="eyebrow">03 / TRACE</span>
+            <h2>推演过程</h2>
+          </div>
+          <span class="status-chip muted" id="processStatus">待开始</span>
+        </div>
+
+        <div class="progress-block">
+          <div class="progress-meta">
+            <span id="phaseLabel">尚未化简</span>
+            <span class="mono" id="stepCounter">0 / 0</span>
+          </div>
+          <div class="progress-track" aria-hidden="true"><span id="progressBar"></span></div>
+        </div>
+
+        <div class="playback">
+          <div class="transport">
+            <button type="button" class="transport-btn" id="prevBtn" disabled title="上一步（←）" aria-label="上一步">
+              <svg class="icon"><use href="#i-prev"></use></svg>
+            </button>
+            <button type="button" class="transport-btn play-btn" id="playBtn" disabled title="播放 / 暂停（空格）" aria-label="播放">
+              <svg class="icon"><use href="#i-play"></use></svg>
+            </button>
+            <button type="button" class="transport-btn" id="nextBtn" disabled title="下一步（→）" aria-label="下一步">
+              <svg class="icon"><use href="#i-next"></use></svg>
+            </button>
+            <button type="button" class="skip-btn" id="skipBtn" disabled title="直接查看化简结果">
+              <svg class="icon"><use href="#i-skip"></use></svg><span>结果</span>
+            </button>
+          </div>
+          <label class="speed-control">
+            <span>速度</span>
+            <select id="speedSelect" aria-label="播放速度">
+              <option value="0.6">0.6×</option>
+              <option value="1" selected>1×</option>
+              <option value="1.5">1.5×</option>
+              <option value="2">2×</option>
+              <option value="3">3×</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="active-step" id="activeStep">
+          <span class="active-step-index">READY</span>
+          <h3>准备好开始了吗？</h3>
+          <p>输入一个自动机，然后按下「开始化简」。这里会解释每一次标记的理由。</p>
+        </div>
+
+        <div class="log-head">
+          <span>步骤轨迹</span>
+          <span id="logCount">未开始</span>
+        </div>
+        <div class="steps-log" id="stepsLog">
+          <div class="log-placeholder">
+            <span class="placeholder-line"></span>
+            <span class="placeholder-line short"></span>
+            <span class="placeholder-line"></span>
+            <p>等待算法启动</p>
+          </div>
+        </div>
+
+        <div class="result-card" id="resultCard" hidden>
+          <div class="result-head">
+            <span class="eyebrow">RESULT</span>
+            <span class="result-count" id="resultCount"></span>
+          </div>
+          <h3>最小 DFA 已生成</h3>
+          <div class="result-summary" id="resultSummary"></div>
+          <div class="class-list" id="classList"></div>
+          <div class="result-notes" id="resultNotes" hidden></div>
+          <button class="copy-btn" id="copyResultBtn" type="button">
+            <svg class="icon"><use href="#i-copy"></use></svg>
+            复制化简后的转移表达式
+          </button>
+        </div>
+
+        <div class="algo-footnote">
+          <span>标记法</span>
+          <p>终态/非终态先区分；若某输入会把一对状态送到已区分对，则这一对也可区分。未标记对即为等价状态。</p>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div class="toast-host" id="toastHost" aria-live="polite"></div>
+
+  <dialog class="dialog help-dialog" id="helpDialog">
+    <div class="dialog-head">
+      <div>
+        <span class="eyebrow">FIELD NOTES</span>
+        <h2>三分钟上手</h2>
+      </div>
+      <button type="button" class="dialog-close" id="closeHelpBtn" aria-label="关闭">
+        <svg class="icon"><use href="#i-x"></use></svg>
+      </button>
+    </div>
+    <div class="dialog-body">
+      <div class="help-grid">
+        <section>
+          <span class="help-number">01</span>
+          <h3>输入自动机</h3>
+          <p>在图形编辑器里拖动状态，用「连线」工具连接状态并选择字母。也可以切到表达式，直接粘贴转移式。</p>
+          <p>右键？不需要。点选状态或转移标签后，检查器里会出现对应操作。</p>
+        </section>
+        <section>
+          <span class="help-number">02</span>
+          <h3>观察化简</h3>
+          <p>按下「开始化简」后，播放器会逐格填写区分表。橙色圆圈是当前检查的状态对，蓝色是它的区分证据。</p>
+          <p>绿色输出是最小 DFA，状态标签 A/B/C… 对应原始状态的等价类。</p>
+        </section>
+      </div>
+
+      <h3>转移表达式</h3>
+      <pre class="help-code"><code>states: q0, q1, q2
+alphabet: a, b
+start: q0
+finals: q2
+
+q0 -a-> q1
+q0 -b-> q0
+q1 -a,b-> q2
+q2 -a-> q2
+q2 -b-> q2</code></pre>
+      <ul class="help-list">
+        <li><code>states</code> 和 <code>alphabet</code> 可以省略，解析器会从转移式推断。</li>
+        <li>缺失的转移会自动补一个陷阱状态；不可达状态会在化简时移除。</li>
+        <li>终态为空时接受空语言；表达式最多支持 20 个状态、10 个输入字母。</li>
+      </ul>
+
+      <h3>标记法在做什么？</h3>
+      <ol class="help-steps">
+        <li>把每个状态与其它状态配对，制作一张三角形区分表。</li>
+        <li>一个终态和一个非终态一定可区分，先标记它们的格子。</li>
+        <li>对每个未标记对，尝试每个输入字母。如果两条转移落进一个已标记对，就标记当前对。</li>
+        <li>重复上面的扫描，直到表格不再变化。没有标记的状态对就是等价的。</li>
+        <li>把等价状态合并成等价类，得到唯一的最小 DFA。</li>
+      </ol>
+      <div class="help-note">
+        <strong>快捷键</strong>
+        <span><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 开始化简</span>
+        <span><kbd>Space</kbd> 播放 / 暂停</span>
+        <span><kbd>←</kbd> <kbd>→</kbd> 手动步进</span>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="dialog symbol-dialog" id="symbolDialog">
+    <div class="dialog-head">
+      <div>
+        <span class="eyebrow">NEW TRANSITION</span>
+        <h2 id="symbolDialogTitle">添加转移</h2>
+      </div>
+      <button type="button" class="dialog-close" id="closeSymbolBtn" aria-label="关闭">
+        <svg class="icon"><use href="#i-x"></use></svg>
+      </button>
+    </div>
+    <div class="dialog-body">
+      <p class="dialog-desc">选择这个状态对在哪些输入字母上发生转移。已存在的转移会显示为不可选。</p>
+      <div class="symbol-options" id="symbolOptions"></div>
+      <div class="inline-form dialog-inline-form">
+        <input type="text" id="dialogSymbolInput" maxlength="5" placeholder="添加一个新字母，如 c" autocomplete="off">
+        <button type="button" id="dialogAddSymbolBtn">加入字母表</button>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="ghost-btn" id="cancelSymbolBtn">取消</button>
+        <button type="button" class="primary-btn small" id="confirmSymbolBtn">添加选中的转移</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="js/core.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
